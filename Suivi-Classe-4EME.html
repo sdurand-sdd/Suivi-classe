@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiche de suivi hebdomadaire - 4ème</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .week-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .week-selector button {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .week-selector button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        
+        .week-selector span {
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 250px;
+            text-align: center;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            justify-content: center;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .legend-box {
+            width: 25px;
+            height: 25px;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+        }
+        
+        .retard { background: #ff6b6b; }
+        .travail { background: #ffd93d; }
+        .materiel { background: #ff9f43; }
+        .bavardage { background: #a29bfe; }
+        .perturbation { background: #fd79a8; }
+        .progres { background: #55efc4; }
+        
+        .table-container {
+            overflow-x: auto;
+            padding: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th:first-child {
+            border-top-left-radius: 10px;
+        }
+        
+        th:last-child {
+            border-top-right-radius: 10px;
+        }
+        
+        td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        td:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: #2d3436;
+            padding-left: 20px;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .cell-button {
+            width: 35px;
+            height: 35px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .cell-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .cell-button.active {
+            border-width: 3px;
+            color: white;
+        }
+        
+        .cell-button.retard.active { background: #ff6b6b; border-color: #ee5a52; }
+        .cell-button.travail.active { background: #ffd93d; border-color: #f5c71a; color: #333; }
+        .cell-button.materiel.active { background: #ff9f43; border-color: #ee8c2f; }
+        .cell-button.bavardage.active { background: #a29bfe; border-color: #6c5ce7; }
+        .cell-button.perturbation.active { background: #fd79a8; border-color: #e84393; }
+        .cell-button.progres.active { background: #55efc4; border-color: #00b894; color: #333; }
+        
+        .actions {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-reset {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-reset:hover {
+            background: #ee5a52;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.3);
+        }
+        
+        .btn-export {
+            background: #55efc4;
+            color: #2d3436;
+        }
+        
+        .btn-export:hover {
+            background: #00b894;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,184,148,0.3);
+        }
+        
+        .note-section {
+            padding: 20px 30px;
+            background: #fff;
+        }
+        
+        .note-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .note-section textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #55efc4;
+            color: #2d3436;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .week-change-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 2000;
+            display: none;
+            text-align: center;
+        }
+        
+        .week-change-alert h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        .week-change-alert p {
+            color: #2d3436;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        
+        .week-change-alert button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .week-change-alert button:hover {
+            transform: scale(1.05);
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999;
+            display: none;
+        }
+        
+        .export-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 2000;
+            display: none;
+            min-width: 400px;
+        }
+        
+        .export-modal h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        
+        .export-modal label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d3436;
+            font-weight: 600;
+        }
+        
+        .export-modal input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .export-modal input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .export-modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .export-modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-export-confirm {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-export-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+        }
+        
+        .btn-export-cancel {
+            background: #e0e0e0;
+            color: #2d3436;
+        }
+        
+        .btn-export-cancel:hover {
+            background: #d0d0d0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="week-change-alert" id="weekChangeAlert">
+        <h2>🔔 Nouvelle semaine détectée !</h2>
+        <p>Nous sommes maintenant en <span id="newWeekName"></span>.<br>Voulez-vous basculer sur la nouvelle semaine ?</p>
+        <button onclick="switchToNewWeek()">Oui, passer à la nouvelle semaine</button>
+    </div>
+    
+    <div class="export-modal" id="exportModal">
+        <h2>📊 Exporter plusieurs semaines</h2>
+        <label for="startWeek">Semaine de début (numéro) :</label>
+        <input type="number" id="startWeek" min="1" max="53" placeholder="Ex: 40">
+        
+        <label for="endWeek">Semaine de fin (numéro) :</label>
+        <input type="number" id="endWeek" min="1" max="53" placeholder="Ex: 47">
+        
+        <p style="font-size: 13px; color: #666; margin-top: 10px;">
+            💡 Astuce : La semaine actuelle est la semaine <span id="currentWeekNum"></span>
+        </p>
+        
+        <div class="export-modal-buttons">
+            <button class="btn-export-cancel" onclick="closeExportModal()">Annuler</button>
+            <button class="btn-export-confirm" onclick="exportMultipleWeeks()">Exporter</button>
+        </div>
+    </div>
+    
+    <div class="save-indicator" id="saveIndicator">✓ Sauvegardé</div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📋 Fiche de suivi hebdomadaire - Classe de 4ème</h1>
+            <div class="week-selector">
+                <button onclick="changeWeek(-1)">◀ Semaine précédente</button>
+                <span id="weekDisplay"></span>
+                <button onclick="changeWeek(1)">Semaine suivante ▶</button>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box retard"></div>
+                <span>Retard</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box travail"></div>
+                <span>Travail non fait</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box materiel"></div>
+                <span>Oubli matériel</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box bavardage"></div>
+                <span>Bavardages</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box perturbation"></div>
+                <span>Perturbe le cours</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box progres"></div>
+                <span>Attitude en progrès</span>
+            </div>
+        </div>
+        
+        <div id="loadingDiv" class="loading">Chargement des données...</div>
+        
+        <div id="mainContent" style="display: none;">
+            <div class="table-container">
+                <table id="suiviTable">
+                    <thead>
+                        <tr>
+                            <th>Élève</th>
+                            <th>Retard</th>
+                            <th>Travail<br>non fait</th>
+                            <th>Oubli<br>matériel</th>
+                            <th>Bavardages</th>
+                            <th>Perturbe<br>le cours</th>
+                            <th>Attitude<br>en progrès</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+            
+            <div class="note-section">
+                <h3 style="margin-bottom: 10px; color: #2d3436;">📝 Notes de la semaine</h3>
+                <textarea id="weekNotes" placeholder="Ajoutez des remarques générales sur la semaine..."></textarea>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-export" onclick="exportData()">📊 Exporter cette semaine</button>
+                <button class="btn btn-export" onclick="openExportModal()">📅 Exporter plusieurs semaines</button>
+                <button class="btn btn-reset" onclick="resetWeek()">🔄 Réinitialiser cette semaine</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, doc, setDoc, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA4BpxaadwjKgiJH3rwOdk3WaJ9m5G9qqw",
+            authDomain: "suivi-classe-4eme.firebaseapp.com",
+            projectId: "suivi-classe-4eme",
+            storageBucket: "suivi-classe-4eme.firebasestorage.app",
+            messagingSenderId: "1088897454236",
+            appId: "1:1088897454236:web:273a6ddf50ab9c0b605d59"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const eleves = [
+            'Nayid', 'Aurélien', 'Vincenzo', 'Niels', 'Noam', 'Yanis', 'Mouad', 
+            'Axel', 'Emmy', 'Alexie', 'Roman', 'Yasser', 'Rose', 'Louise', 
+            'Lyanna', 'Maéva', 'Castille', 'Flora', 'Daphnée', 'Rayan', 'Karim', 
+            'Romane', 'Léa', 'Younès', 'Gabriel', 'Victoria', 'Zoé', 'Amalia', 
+            'Léana', 'Virgile'
+        ];
+        
+        const categories = ['retard', 'travail', 'materiel', 'bavardage', 'perturbation', 'progres'];
+        
+        let currentWeekOffset = 0;
+        let saveTimeout = null;
+        let initialWeekKey = null;
+        let weekCheckInterval = null;
+        
+        function getWeekNumber(date) {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+            const yearStart = new Date(d.getFullYear(), 0, 1);
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+        
+        function getWeekDates(offset) {
+            const today = new Date();
+            today.setDate(today.getDate() + (offset * 7));
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(today.setDate(diff));
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            
+            const weekNum = getWeekNumber(monday);
+            return {
+                monday,
+                sunday,
+                weekNum,
+                display: `Semaine ${weekNum} - ${monday.toLocaleDateString('fr-FR')} au ${sunday.toLocaleDateString('fr-FR')}`
+            };
+        }
+        
+        function getCurrentWeekKey() {
+            const week = getWeekDates(currentWeekOffset);
+            return `week_${week.monday.getFullYear()}_${week.weekNum}`;
+        }
+        
+        function checkWeekChange() {
+            const currentWeekKey = getWeekDates(0);
+            const actualWeekKey = `week_${currentWeekKey.monday.getFullYear()}_${currentWeekKey.weekNum}`;
+            
+            // Si on est sur la semaine en cours et que la vraie semaine a changé
+            if (currentWeekOffset === 0 && initialWeekKey !== actualWeekKey) {
+                const week = getWeekDates(0);
+                document.getElementById('newWeekName').textContent = week.display;
+                document.getElementById('weekChangeAlert').style.display = 'block';
+                document.getElementById('overlay').style.display = 'block';
+            }
+        }
+        
+        window.switchToNewWeek = async function() {
+            document.getElementById('weekChangeAlert').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+            await saveCurrentWeek();
+            currentWeekOffset = 0;
+            initialWeekKey = getWeekDates(0);
+            initialWeekKey = `week_${initialWeekKey.monday.getFullYear()}_${initialWeekKey.weekNum}`;
+            updateWeekDisplay();
+            await loadWeekData();
+        }
+        
+        function updateWeekDisplay() {
+            const week = getWeekDates(currentWeekOffset);
+            document.getElementById('weekDisplay').textContent = week.display;
+        }
+        
+        window.changeWeek = async function(offset) {
+            await saveCurrentWeek();
+            currentWeekOffset += offset;
+            updateWeekDisplay();
+            await loadWeekData();
+        }
+        
+        function initTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            eleves.forEach(eleve => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${eleve}</td>
+                    ${categories.map(cat => `
+                        <td>
+                            <button class="cell-button ${cat}" 
+                                    data-eleve="${eleve}" 
+                                    data-category="${cat}"
+                                    onclick="toggleCell(this)">
+                                0
+                            </button>
+                        </td>
+                    `).join('')}
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        window.toggleCell = function(button) {
+            const count = parseInt(button.textContent);
+            const newCount = button.classList.contains('active') ? 0 : count + 1;
+            
+            if (newCount === 0) {
+                button.classList.remove('active');
+                button.textContent = '0';
+            } else {
+                button.classList.add('active');
+                button.textContent = newCount;
+            }
+            
+            debounceSave();
+        }
+        
+        function debounceSave() {
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                saveCurrentWeek();
+            }, 1000);
+        }
+        
+        async function saveCurrentWeek() {
+            const weekKey = getCurrentWeekKey();
+            const data = {};
+            
+            document.querySelectorAll('.cell-button').forEach(btn => {
+                const eleve = btn.dataset.eleve;
+                const category = btn.dataset.category;
+                const key = `${eleve}_${category}`;
+                data[key] = {
+                    count: parseInt(btn.textContent),
+                    active: btn.classList.contains('active')
+                };
+            });
+            
+            const notes = document.getElementById('weekNotes').value;
+            
+            try {
+                await setDoc(doc(db, 'weeks', weekKey), {
+                    data: data,
+                    notes: notes,
+                    lastUpdate: new Date().toISOString()
+                });
+                showSaveIndicator();
+            } catch (error) {
+                console.error('Erreur de sauvegarde:', error);
+                alert('Erreur lors de la sauvegarde. Vérifiez votre connexion internet.');
+            }
+        }
+        
+        async function loadWeekData() {
+            const weekKey = getCurrentWeekKey();
+            
+            try {
+                const docSnap = await getDoc(doc(db, 'weeks', weekKey));
+                
+                if (docSnap.exists()) {
+                    const weekData = docSnap.data();
+                    const data = weekData.data || {};
+                    const notes = weekData.notes || '';
+                    
+                    document.querySelectorAll('.cell-button').forEach(btn => {
+                        const eleve = btn.dataset.eleve;
+                        const category = btn.dataset.category;
+                        const key = `${eleve}_${category}`;
+                        
+                        if (data[key]) {
+                            btn.textContent = data[key].count;
+                            if (data[key].active) {
+                                btn.classList.add('active');
+                            } else {
+                                btn.classList.remove('active');
+                            }
+                        } else {
+                            btn.textContent = '0';
+                            btn.classList.remove('active');
+                        }
+                    });
+                    
+                    document.getElementById('weekNotes').value = notes;
+                } else {
+                    document.querySelectorAll('.cell-button').forEach(btn => {
+                        btn.textContent = '0';
+                        btn.classList.remove('active');
+                    });
+                    document.getElementById('weekNotes').value = '';
+                }
+            } catch (error) {
+                console.error('Erreur de chargement:', error);
+                alert('Erreur lors du chargement des données.');
+            }
+        }
+        
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 2000);
+        }
+        
+        window.resetWeek = async function() {
+            const password = prompt('⚠️ ATTENTION : Cette action effacera toutes les données de la semaine pour tous les professeurs.\n\nMot de passe du professeur principal :');
+            
+            if (password === null) return; // Annulation
+            
+            if (password !== 'Prof2024') {
+                alert('❌ Mot de passe incorrect');
+                return;
+            }
+            
+            if (confirm('Êtes-vous vraiment sûr de vouloir réinitialiser toutes les données de cette semaine ? Cette action est irréversible.')) {
+                const weekKey = getCurrentWeekKey();
+                try {
+                    await deleteDoc(doc(db, 'weeks', weekKey));
+                    await loadWeekData();
+                    showSaveIndicator();
+                    alert('✓ Semaine réinitialisée avec succès');
+                } catch (error) {
+                    console.error('Erreur lors de la réinitialisation:', error);
+                    alert('❌ Erreur lors de la réinitialisation');
+                }
+            }
+        }
+        
+        window.exportData = function() {
+            const week = getWeekDates(currentWeekOffset);
+            let csv = 'Élève;Retards;Travail non fait;Oubli matériel;Bavardages;Perturbe le cours;Attitude en progrès\n';
+            
+            eleves.forEach(eleve => {
+                const row = [eleve];
+                categories.forEach(cat => {
+                    const btn = document.querySelector(`[data-eleve="${eleve}"][data-category="${cat}"]`);
+                    row.push(btn.textContent);
+                });
+                csv += row.join(';') + '\n';
+            });
+            
+            const notes = document.getElementById('weekNotes').value;
+            if (notes) {
+                csv += '\nNotes de la semaine:\n' + notes;
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `suivi_semaine_${week.weekNum}.csv`;
+            link.click();
+        }
+        
+        window.openExportModal = function() {
+            const currentWeek = getWeekDates(0);
+            document.getElementById('currentWeekNum').textContent = currentWeek.weekNum;
+            document.getElementById('exportModal').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+        
+        window.closeExportModal = function() {
+            document.getElementById('exportModal').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+        
+        window.exportMultipleWeeks = async function() {
+            const startWeek = parseInt(document.getElementById('startWeek').value);
+            const endWeek = parseInt(document.getElementById('endWeek').value);
+            
+            if (!startWeek || !endWeek) {
+                alert('Veuillez renseigner les deux numéros de semaine');
+                return;
+            }
+            
+            if (startWeek > endWeek) {
+                alert('La semaine de début doit être inférieure à la semaine de fin');
+                return;
+            }
+            
+            if (endWeek - startWeek > 20) {
+                alert('Vous ne pouvez pas exporter plus de 20 semaines à la fois');
+                return;
+            }
+            
+            closeExportModal();
+            
+            // Afficher un indicateur de chargement
+            const indicator = document.getElementById('saveIndicator');
+            indicator.textContent = '⏳ Export en cours...';
+            indicator.style.display = 'block';
+            
+            let fullCSV = '';
+            const currentYear = new Date().getFullYear();
+            
+            for (let weekNum = startWeek; weekNum <= endWeek; weekNum++) {
+                const weekKey = `week_${currentYear}_${weekNum}`;
+                
+                try {
+                    const docSnap = await getDoc(doc(db, 'weeks', weekKey));
+                    
+                    fullCSV += `\n=== SEMAINE ${weekNum} ===\n`;
+                    fullCSV += 'Élève;Retards;Travail non fait;Oubli matériel;Bavardages;Perturbe le cours;Attitude en progrès\n';
+                    
+                    if (docSnap.exists()) {
+                        const weekData = docSnap.data();
+                        const data = weekData.data || {};
+                        
+                        eleves.forEach(eleve => {
+                            const row = [eleve];
+                            categories.forEach(cat => {
+                                const key = `${eleve}_${cat}`;
+                                row.push(data[key] ? data[key].count : 0);
+                            });
+                            fullCSV += row.join(';') + '\n';
+                        });
+                        
+                        if (weekData.notes) {
+                            fullCSV += '\nNotes:\n' + weekData.notes + '\n';
+                        }
+                    } else {
+                        fullCSV += 'Aucune donnée pour cette semaine\n';
+                    }
+                    
+                    fullCSV += '\n';
+                } catch (error) {
+                    console.error(`Erreur pour la semaine ${weekNum}:`, error);
+                }
+            }
+            
+            const blob = new Blob([fullCSV], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `suivi_semaines_${startWeek}_a_${endWeek}.csv`;
+            link.click();
+            
+            indicator.textContent = '✓ Export terminé';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+                indicator.textContent = '✓ Sauvegardé';
+            }, 2000);
+        }
+        
+        document.getElementById('weekNotes').addEventListener('input', () => {
+            debounceSave();
+        });
+        
+        async function init() {
+            initTable();
+            updateWeekDisplay();
+            
+            // Enregistrer la semaine initiale
+            const week = getWeekDates(0);
+            initialWeekKey = `week_${week.monday.getFullYear()}_${week.weekNum}`;
+            
+            await loadWeekData();
+            document.getElementById('loadingDiv').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            // Vérifier le changement de semaine toutes les 5 minutes
+            weekCheckInterval = setInterval(checkWeekChange, 5 * 60 * 1000);
+        }
+        
+        init();
+    </script>
+</body>
+</html>
